@@ -1,20 +1,23 @@
 import pytest
-from app import app
+from app import application
 
 @pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+def api_client():
+    """Configure test environment and yield Flask test client."""
+    application.config['TESTING'] = True
+    with application.test_client() as runner:
+        yield runner
 
-def test_home_endpoint(client):
-    """Test the API root route return status and content."""
-    response = client.get('/')
-    assert response.status_code == 200
-    assert b"CloudKart E-Commerce Platform" in response.data
+def test_root_route_success(api_client):
+    """Verify root endpoint returns HTTP 200 and expected service payload."""
+    result = api_client.get('/')
+    assert result.status_code == 200
+    assert b"CloudKart Core Engine" in result.data
 
-def test_health_check_endpoint(client):
-    """Test system health check for automated deployment readiness."""
-    response = client.get('/health')
-    assert response.status_code == 200
-    assert b"healthy" in response.data
+def test_health_check_status(api_client):
+    """Verify health check endpoint reports operational status."""
+    result = api_client.get('/health')
+    assert result.status_code == 200
+    json_data = result.get_json()
+    assert json_data['status'] == 'healthy'
+    assert json_data['database_connection'] == 'active'
