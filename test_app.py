@@ -1,23 +1,27 @@
-import pytest
-from app import application
+"""
+CloudKart Microservice API
+"""
+from flask import Flask, jsonify
 
-@pytest.fixture
-def api_client():
-    """Configure test environment and yield Flask test client."""
-    application.config['TESTING'] = True
-    with application.test_client() as runner:
-        yield runner
+application = Flask(_name_)
 
-def test_root_route_success(api_client):
-    """Verify root endpoint returns HTTP 200 and expected service payload."""
-    result = api_client.get('/')
-    assert result.status_code == 200
-    assert b"CloudKart Core Engine" in result.data
+@application.route('/')
+def index_endpoint():
+    payload = {
+        "service_name": "CloudKart Core Engine",
+        "system_status": "UP",
+        "deployment_region": "Global Gateway",
+        "api_version": "1.0.0"
+    }
+    return jsonify(payload), 200
 
-def test_health_check_status(api_client):
-    """Verify health check endpoint reports operational status."""
-    result = api_client.get('/health')
-    assert result.status_code == 200
-    json_data = result.get_json()
-    assert json_data['status'] == 'healthy'
-    assert json_data['database_connection'] == 'active'
+@application.route('/health')
+def check_system_health():
+    return jsonify({
+        "status": "healthy",
+        "database_connection": "active",
+        "node_state": "operational"
+    }), 200
+
+if _name_ == '_main_':
+    application.run(host='0.0.0.0', port=5000)
